@@ -1,0 +1,109 @@
+本指南将介绍如何使用 generateContent和 streamGenerateContent API。重点是仅文本输入以及文本和图片输入的文本输出。接收者 如需详细了解如何针对视频和音频文件进行多模态提示，请参阅 文件提示策略。
+
+准备工作：设置您的项目和 API 密钥
+
+在调用 Gemini API 之前，您需要设置项目并配置 您的 API 密钥。
+
+根据纯文本输入生成文本
+
+使用 Gemini API 生成文本的最简单方法是提供 单个文本的输入，如下例所示：
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+response = model.generate_content("Write a story about a magic backpack.")
+print(response.text)
+text_generation.py
+
+
+
+在此示例中，提示（“写一个关于一个神奇背包的故事”）没有 添加任何输出示例、系统指令或格式信息。 零样本 方法。对于某些应用场景， 单次或 少样本提示 可能会生成更符合用户预期的输出。在某些情况下 你可能还希望提供 系统说明，以帮助模型 了解任务或遵循具体指南。
+
+根据文本和图片输入生成文本
+
+Gemini API 支持将文本与媒体文件相结合的多模态输入。 以下示例展示了如何根据文本和图片输入生成文本：
+
+import PIL.Image
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+organ = PIL.Image.open(media / "organ.jpg")
+response = model.generate_content(["Tell me about this instrument", organ])
+print(response.text)
+text_generation.py
+
+
+
+与纯文字提示一样，多模态提示可能涉及多种方法 以及优化。根据此示例的输出，您可能需要 在提示中添加步骤，或在说明中添加更具体的内容。如需了解详情， 请参阅文件提示策略。
+
+生成文本流
+
+默认情况下，模型会在填完整个文本后返回回答 生成过程。您可以实现更快的互动，即不等待 整个结果，而改用流式传输来处理部分结果。
+
+以下示例展示了如何使用 streamGenerateContent 方法 根据纯文本输入提示生成文本。
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+response = model.generate_content("Write a story about a magic backpack.", stream=True)
+for chunk in response:
+    print(chunk.text)
+    print("_" * 80)
+text_generation.py
+
+
+构建互动式聊天
+
+您可以使用 Gemini API 为用户打造互动式聊天体验。 通过使用该 API 的聊天功能，您可以收集多轮问题 和回答，让用户能够逐步寻求答案或获取帮助 解决多部分问题。此功能非常适合有以下要求的应用： 持续沟通，例如聊天机器人、互动式导师或客户服务 Google 助理。
+
+以下代码示例展示了基本的聊天实现：
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+chat = model.start_chat(
+    history=[
+        {"role": "user", "parts": "Hello"},
+        {"role": "model", "parts": "Great to meet you. What would you like to know?"},
+    ]
+)
+response = chat.send_message("I have 2 dogs in my house.")
+print(response.text)
+response = chat.send_message("How many paws are in my house?")
+print(response.text)
+chat.py
+
+
+配置文本生成
+
+您发送给模型的每个提示都包含 参数， 控制模型生成响应的方式。您可以使用 GenerationConfig至 配置这些参数如果您不配置参数，则模型 使用默认选项，具体选项可能因模型而异。
+
+以下示例展示了如何配置多个可用选项。
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+response = model.generate_content(
+    "Tell me a story about a magic backpack.",
+    generation_config=genai.types.GenerationConfig(
+        # Only one candidate for now.
+        candidate_count=1,
+        stop_sequences=["x"],
+        max_output_tokens=20,
+        temperature=1.0,
+    ),
+)
+
+print(response.text)
+configure_model_parameters.py
+
+
+
+candidateCount 指定要返回的已生成响应的数量。 目前，此值只能设置为 1。如果未设置，则默认为 1。
+
+stopSequences 用于指定字符序列集（最多 5 个）， 停止输出生成。如果指定，API 将在首次出现时停止 （针对 stop_sequence）。停止序列不会包含在 响应。
+
+maxOutputTokens 设置候选词可包含的词元数量上限。
+
+temperature 用于控制输出的随机性。使用更高的值 更有创意的回答，而较低的值可获得更加确定的回答。值 取值范围为 [0.0, 2.0]。
+
+您还可以配置对 generateContent 的单个调用：
+
+response = model.generate_content(
+    'Write a story about a magic backpack.',
+    generation_config = genai.GenerationConfig(
+        max_output_tokens=1000,
+        temperature=0.1,
+    )
+)

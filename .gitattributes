@@ -1,0 +1,26 @@
+# 设置默认行为，以防人们没有设置 core.autocrlf
+* text=auto
+
+# 明确声明应该规范化的文本文件
+*.tsx text
+*.ts text
+*.js text
+*.jsx text
+*.json text
+*.css text
+*.scss text
+*.html text
+*.md text
+*.yml text
+*.yaml text
+*.config.js text
+
+# 二进制文件不应该被修改
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
